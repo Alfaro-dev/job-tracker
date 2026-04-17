@@ -1,0 +1,13 @@
+{
+  "name": "Job Tracker API",
+  "dockerComposeFile": ["docker-compose.yml"],
+  "service": "job-tracker-api",
+  "workspaceFolder": "/app",
+  "forwardPorts": [3000],
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
+    }
+  }
+}

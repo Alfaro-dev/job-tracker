@@ -1,0 +1,18 @@
+services:
+  job-tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./index.html:/app/index.html
+      - ./PROMPT.md:/app/PROMPT.md
+    restart: unless-stopped
+    networks:
+      - job-tracker-network
+
+networks:
+  job-tracker-network:
+    driver: bridge

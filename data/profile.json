@@ -1,0 +1,115 @@
+{
+  "lastUpdated": "2026-04-13",
+  "name": "Carlos Moisés Ortiz Alfaro",
+  "title": "Fullstack Developer (Web + Móvil) | Flutter Developer",
+  "location": "San Salvador, El Salvador",
+  "email": "carlos.alfaro2605@gmail.com",
+  "phone": "+503 76984643",
+  "linkedin": "linkedin.com/in/carlosalfaro2605",
+  "github": "github.com/Alfaro-dev",
+  "web": "carlosalfaro.dev",
+  "languages": {
+    "spanish": "nativo",
+    "english": "lectura técnica básica"
+  },
+  "availability": "Inmediata",
+
+  "salary": {
+    "remoteProfessional": 2200,
+    "remoteProfessionalNet": 2000,
+    "indefiniteContract": 2600
+  },
+
+  "filters": {
+    "hard": [
+      "Ofertas publicadas hace más de 7 días — ignorar sin excepción",
+      "Ofertas en inglés o con equipo que opera en inglés",
+      "Trabajo presencial fuera de El Salvador",
+      "Salario por debajo del mínimo según modalidad",
+      "Roles puramente DevOps, React sin backend, o .NET sin Laravel"
+    ],
+    "topSkills": ["Flutter / Dart", "Laravel / PHP + Livewire", "Angular", "Vue.js / React"],
+    "intermediateSkills": ["GraphQL", "C# / .NET", "Docker", "Ionic", "React Native", "Java Android"],
+    "tools": ["Git", "Scrum/Agile", "WordPress", "ManageEngine", "REST APIs"]
+  },
+
+  "experience": [
+    {
+      "company": "Sofis Solutions",
+      "role": "Flutter Developer",
+      "period": "sep 2025 – mar 2026",
+      "description": "Multinacional uruguaya. Proyectos institucionales para el sistema educativo de Uruguay y el Gobierno de El Salvador.",
+      "stack": ["Flutter (x2)", "Angular (x1)", "Ionic (x1)"]
+    },
+    {
+      "company": "Freelance — Empresa Confidencial EE.UU.",
+      "role": "Fullstack Developer",
+      "period": "mar 2025 – sep 2025",
+      "description": "Sistema de gestión mecánica para empresa de transporte de furgones (EE.UU.). 100% remoto.",
+      "stack": ["Laravel + Livewire", "API REST", "Flutter"]
+    },
+    {
+      "company": "OE Internacional",
+      "role": "Full Stack Developer",
+      "period": "sep 2023 – mar 2025",
+      "description": "Empresa médica. Herramientas internas con Angular + Laravel + Docker. Entorno Scrum.",
+      "stack": ["Angular", "Laravel", "Docker"]
+    },
+    {
+      "company": "CASW El Salvador",
+      "role": "Mobile Developer",
+      "period": "ene 2022 – mar 2024",
+      "description": "Manufactura industrial. 4 apps Flutter internas.",
+      "stack": ["Flutter", "APIs REST/GraphQL", "C#", "ManageEngine"],
+      "achievement": "70% menos errores de inventario manual"
+    },
+    {
+      "company": "Global Commerce Media",
+      "role": "Desarrollador de Software",
+      "period": "sep 2020 – dic 2021",
+      "description": "Agencia digital alemana. WordPress + shortcodes, Ionic, React Native.",
+      "stack": ["WordPress", "Ionic", "React Native"]
+    },
+    {
+      "company": "Market Beat",
+      "role": "Desarrollador Junior",
+      "period": "mar 2020 – ago 2020",
+      "description": "Plataforma de encuestas completa con Laravel + Angular.",
+      "stack": ["Laravel", "Angular"],
+      "achievement": "60% menos tiempo de análisis de datos"
+    },
+    {
+      "company": "Mobilitika S.A. de C.V.",
+      "role": "Desarrollador Junior",
+      "period": "dic 2019 – feb 2020",
+      "description": "Integración de pagos en app Android nativa (Java).",
+      "stack": ["Java Android"],
+      "achievement": "20% más conversión de pagos"
+    }
+  ],
+
+  "achievements": [
+    "70% menos errores de inventario manual (CASW, Flutter)",
+    "60% menos tiempo de análisis de datos (Market Beat, Laravel+Angular)",
+    "20% más conversión de pagos (Mobilitika, Android)",
+    "Proyectos entregados para gobiernos de Uruguay y El Salvador (Sofis)",
+    "Freelance exitoso para cliente en EE.UU. (mercado internacional)"
+  ],
+
+  "industries": ["Manufactura industrial", "Salud/medtech", "Educación pública", "Gobierno/institucional", "Transporte/logística", "Media digital"],
+
+  "cvVersions": {
+    "flutterFocused": {
+      "focus": "Flutter/Dart, apps móviles, logros en reducción de errores",
+      "highlight": "70% menos errores de inventario, experiencia en proyectos gubernamentales"
+    },
+    "fullstack": {
+      "focus": "Flutter + Laravel + Angular + Vue",
+      "highlight": "Fullstack con experiencia en proyectos internacionales"
+    },
+    "laravelAngular": {
+      "focus": "Laravel + Livewire + Angular + APIs REST",
+      "highlight": "60% reducción en tiempo de análisis, experiencia medtech"
+    }
+  }
+}
