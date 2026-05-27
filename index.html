@@ -127,48 +127,11 @@
         let currentSection = 'ideal';
         let filters = { search: '', stack: '', modality: '' };
 
-        const JOBS_DATA = [
-            {
-                id: 11,
-                title: "Programador para página Web y redes",
-                company: "INTERPA",
-                url: "https://sv.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-programador-para-pagina-web-y-redes-sociales-en-san-salvador-A7A9B4B4A0D8DE6061373E686DCF3405",
-                salary: 700,
-                salaryMax: 700,
-                currency: "USD",
-                modality: "Presencial",
-                location: "San Salvador, SV",
-                stack: ["WordPress", "Frontend"],
-                date: "2026-04-11",
-                daysAgo: 2,
-                notes: "❌ $700/mes — muy bajo",
-                isIdeal: false,
-                applied: false,
-                cvRequested: false
-            },
-            {
-                id: 15,
-                title: "Developer Flutter Automation",
-                company: "SunDevs",
-                url: "https://www.linkedin.com/jobs/view/4398513475/",
-                salary: 1500,
-                salaryMax: 2000,
-                currency: "USD",
-                modality: "Remoto",
-                location: "Colombia (LatAm)",
-                stack: ["Flutter", "QA Automation"],
-                date: "2026-04-07",
-                daysAgo: 6,
-                notes: "Entrevista mar 14 8:45am — salario bajo ($1,500-$2,000), mix QA+Dev",
-                isIdeal: false,
-                applied: true,
-                cvRequested: false,
-                interview: "2026-04-14 08:45"
-            }
-        ];
+        const JOBS_DATA = []; // replaced by fetch from API
 
         document.addEventListener('DOMContentLoaded', () => {
-            jobs = JOBS_DATA;
+            fetchJobs();
+            setInterval(fetchJobs, 30000);
             checkPendingCVs();
             updateStats();
             renderJobs();
@@ -187,6 +150,20 @@
             });
             document.getElementById('sort-by').addEventListener('change', renderJobs);
         });
+
+        function fetchJobs() {
+            fetch('/api/jobs')
+                .then(r => r.json())
+                .then(data => {
+                    jobs = data.jobs || [];
+                    renderJobs();
+                    updateStats();
+                    checkPendingCVs();
+                    const lastChecked = data.lastChecked ? new Date(data.lastChecked).toLocaleString('es-SV') : new Date().toLocaleString('es-SV');
+                    document.getElementById('last-update').textContent = 'Verificado: ' + lastChecked;
+                })
+                .catch(err => console.error('Error fetching jobs:', err));
+        }
 
         function showSection(section) {
             currentSection = section;

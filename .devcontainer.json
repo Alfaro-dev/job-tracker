@@ -1,7 +1,7 @@
 {
   "name": "Job Tracker API",
   "dockerComposeFile": ["docker-compose.yml"],
-  "service": "job-tracker-api",
+  "service": "job-tracker",
   "workspaceFolder": "/app",
   "forwardPorts": [3000],
   "postCreateCommand": "npm install",

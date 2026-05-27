@@ -9,6 +9,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
+const API_URL = 'http://localhost:3000/api/jobs';
 const JOBS_FILE = path.join(__dirname, 'data', 'jobs.json');
 const LOG_FILE = path.join(__dirname, 'logs', 'scraper.log');
 
@@ -22,9 +23,22 @@ function log(msg) {
     fs.appendFileSync(LOG_FILE, line + '\n');
 }
 
+async function apiPostJob(job) {
+    const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(job)
+    });
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`API error ${res.status}: ${err}`);
+    }
+    return await res.json();
+}
+
 async function scrapeJobs(page) {
-    // Use Carlos's specific search URL
-    const searchUrl = 'https://www.linkedin.com/jobs/search/?currentJobId=4418148519&distance=25.0&f_TPR=r604800&geoId=91000011&keywords=flutter&origin=JOB_SEARCH_PAGE_JOB_FILTER&sortBy=DD';
+    // Use Carlos's specific search URL — CON FILTRO ESPAÑOL (f_LF=es)
+    const searchUrl = 'https://www.linkedin.com/jobs/search/?f_TPR=r604800&f_LF=es&geoId=91000011&keywords=flutter&sortBy=DD';
     log(`Navigating to: ${searchUrl}`);
     
     await page.goto(searchUrl, { timeout: 30000 });
@@ -130,6 +144,23 @@ function detectStack(title) {
 async function main() {
     log('=== LinkedIn Scraper Started ===');
     
+    // Obtener jobs existentes via API para deduplicar
+    let existingJobs = [];
+    try {
+        const res = await fetch(API_URL);
+        if (res.ok) {
+            const data = await res.json();
+            existingJobs = data.jobs || [];
+            log(`API: ${existingJobs.length} jobs existentes`);
+        }
+    } catch(e) {
+        log(`Warning: no pude leer API, usando archivo local: ${e.message}`);
+        const local = JSON.parse(fs.readFileSync(JOBS_FILE, 'utf8'));
+        existingJobs = local.jobs || [];
+    }
+    
+    const existingUrls = new Set(existingJobs.map(j => j.url));
+    
     const browser = await chromium.launch({
         headless: !DEBUG,
         args: DEBUG ? [] : ['--no-sandbox', '--disable-dev-shm-usage']
@@ -142,28 +173,59 @@ async function main() {
         const page = await context.newPage();
         
         const jobs = await scrapeJobs(page);
+        log(`Scraped: ${jobs.length} jobs de LinkedIn`);
         
-        // Load existing data
-        let existingData = { jobs: [], closedJobs: [] };
-        if (fs.existsSync(JOBS_FILE)) {
-            existingData = JSON.parse(fs.readFileSync(JOBS_FILE, 'utf8'));
+        let newCount = 0;
+        let skippedCount = 0;
+        
+        for (const job of jobs) {
+            if (existingUrls.has(job.link)) {
+                skippedCount++;
+                continue;
+            }
+            
+            const loc = job.location || '';
+            const isRemote = loc.toLowerCase().includes('remoto') || 
+                            loc.toLowerCase().includes('remote') ||
+                            loc.toLowerCase().includes('latin america') ||
+                            loc === '';
+            const modality = isRemote ? 'Remoto' : 'Presencial';
+            
+            const daysAgo = parseTimeToDays(job.time);
+            const date = new Date(Date.now() - daysAgo * 86400000).toISOString().split('T')[0];
+            
+            const jobData = {
+                title: job.title,
+                company: job.company,
+                url: job.link,
+                salary: null,
+                salaryMax: null,
+                currency: 'USD',
+                modality,
+                location: job.location || 'LatAm',
+                stack: detectStack(job.title),
+                date,
+                daysAgo,
+                notes: `Scrapeado de LinkedIn (${new Date().toISOString().split('T')[0]})`,
+                isIdeal: false,
+                applied: false,
+                cvRequested: false
+            };
+            
+            try {
+                const result = await apiPostJob(jobData);
+                log(`POST: "${job.title}" → id=${result.job.id}${result.updated ? ' (actualizado)' : ' (nuevo)'}`);
+                newCount++;
+            } catch(e) {
+                log(`ERROR POST "${job.title}": ${e.message}`);
+            }
         }
         
-        const merged = mergeJobs(jobs, existingData);
-        const newCount = merged.length - existingData.jobs.length;
-        
-        existingData.jobs = merged;
-        existingData.lastChecked = new Date().toISOString();
-        existingData.lastUpdated = new Date().toISOString().split('T')[0];
-        
-        fs.writeFileSync(JOBS_FILE, JSON.stringify(existingData, null, 2));
-        log(`Saved ${merged.length} total jobs (+${newCount} new)`);
+        log(`=== Done: ${newCount} nuevos, ${skippedCount} duplicados ===`);
         
     } finally {
         await browser.close();
     }
-    
-    log('=== Done ===');
 }
 
 main().catch(e => {
