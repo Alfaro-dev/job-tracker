@@ -1,27 +1,23 @@
 {
-  "name": "job-tracker-api",
-  "version": "1.0.0",
-  "description": "Job Tracker API for Carlos Alfaro",
+  "name": "job-tracker",
+  "version": "2.0.0",
+  "description": "Centralizador de ofertas de empleo con IA (MiniMax) y optimización de perfil Harvard",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node --watch server.js",
+    "scrape": "node scraper-linkedin.js",
+    "scrape:all": "node scrapers/index.js",
+    "ai:process": "node ai-service.js",
+    "parse:cv": "node cv-parser.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "playwright": "^1.60.0",
-    "puppeteer-core": "^25.0.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Alfaro-dev/job-tracker.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Alfaro-dev/job-tracker/issues"
-  },
-  "homepage": "https://github.com/Alfaro-dev/job-tracker#readme"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.8.0"
+  }
 }
