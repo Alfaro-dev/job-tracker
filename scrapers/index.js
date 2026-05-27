@@ -22,21 +22,59 @@ const SCRAPERS = {
  * @param {string} query - Término de búsqueda
  * @returns {Promise<Object>} Resultado del scraping
  */
-async function scrapeOne(name, query) {
+/**
+ * Ejecuta un scraper específico y retorna los jobs
+ * @param {string} name - Nombre del scraper
+ * @param {string} query - Término de búsqueda
+ * @returns {Promise<Array>} Array de jobs encontrados
+ */
+async function scrapeOne(name, query = 'desarrollador flutter laravel') {
     const scraper = SCRAPERS[name.toLowerCase()];
     if (!scraper) {
         console.log(`[Scraper] Scrapers disponibles: ${Object.keys(SCRAPERS).join(', ')}`);
-        return { name, success: false, error: `Scraper "${name}" no encontrado` };
+        return [];
     }
-    
+
     try {
         console.log(`[Scraper] Ejecutando ${name} con query: "${query}"`);
         const jobs = await scraper(query);
-        return { name, success: true, count: jobs.length };
+        console.log(`[Scraper] ${name}: ${jobs.length} jobs encontrados`);
+        return jobs;
     } catch (err) {
         console.error(`[Scraper] Error en ${name}: ${err.message}`);
-        return { name, success: false, error: err.message };
+        return [];
     }
+}
+
+/**
+ * Ejecuta todos los scrapers y retorna jobs combinados (sin duplicados por URL)
+ * @param {string} query - Término de búsqueda
+ * @returns {Promise<Array>} Jobs de todas las fuentes, deduplicados
+ */
+async function scrapeAll(query = 'desarrollador flutter laravel') {
+    console.log('[Scraper] === Iniciando scraping de todas las fuentes ===');
+    console.log(`[Scraper] Query: "${query}"`);
+
+    // Ejecutar todos en paralelo
+    const allResults = await Promise.all(
+        Object.keys(SCRAPERS).map(name => scrapeOne(name, query))
+    );
+
+    // Flatten y deduplicar por URL
+    const seen = new Set();
+    const unique = [];
+
+    for (const jobs of allResults) {
+        for (const job of jobs) {
+            if (job.url && !seen.has(job.url)) {
+                seen.add(job.url);
+                unique.push(job);
+            }
+        }
+    }
+
+    console.log(`[Scraper] === Total jobs únicos: ${unique.length} ===`);
+    return unique;
 }
 
 /**
@@ -100,12 +138,13 @@ module.exports = {
 // Si se ejecuta directamente
 if (require.main === module) {
     const args = process.argv.slice(2);
-    const query = args[0] || 'desarrollador';
-    const specific = args[1];
-    
-    if (specific) {
-        scrapeSome(specific.split(','), query).then(() => process.exit(0));
-    } else {
-        scrapeAll(query).then(() => process.exit(0));
-    }
+    const query = args[0] || 'desarrollador flutter laravel';
+
+    scrapeAll(query).then(jobs => {
+        console.log(`\nTotal jobs únicos collected: ${jobs.length}`);
+        process.exit(0);
+    }).catch(err => {
+        console.error('Error fatal:', err.message);
+        process.exit(1);
+    });
 }
