@@ -162,16 +162,36 @@ app.post('/api/jobs/:id/ai-analysis', async (req, res) => {
 
         if (!job) return res.status(404).json({ error: 'Oferta no encontrada' });
 
+        let analysis = {};
+
         // RF 2.1 - Resumen ejecutivo
-        const summary = await aiService.summarizeJob(job.description || job.title + ' ' + job.company);
+        try {
+            analysis.summary = await aiService.summarizeJob(job.description || job.title + ' ' + job.company);
+        } catch (err) {
+            console.error('Error en summarizeJob:', err.message);
+            analysis.summary = null;
+        }
 
         // RF 2.2 - Auditoría de seniority
-        const seniority = await aiService.auditSeniority(job.description || '');
+        try {
+            analysis.seniority = await aiService.auditSeniority(job.description || '');
+        } catch (err) {
+            console.error('Error en auditSeniority:', err.message);
+            analysis.seniority = null;
+        }
 
         // RF 2.3 - Ficha técnica estructurada
-        const techSpec = await aiService.extractJobTechSpec(job);
+        try {
+            analysis.techSpec = await aiService.extractJobTechSpec(job);
+        } catch (err) {
+            console.error('Error en extractJobTechSpec:', err.message);
+            analysis.techSpec = null;
+        }
 
-        const analysis = { summary, seniority, techSpec };
+        // Si todos fallaron, retornar error
+        if (!analysis.summary && !analysis.seniority && !analysis.techSpec) {
+            return res.status(500).json({ error: 'No se pudo completar el análisis IA. Intenta más tarde.' });
+        }
 
         // Guardar en la oferta
         job.aiAnalysis = analysis;
@@ -209,11 +229,37 @@ app.post('/api/users/register', upload.single('cv'), async (req, res) => {
         }
 
         // RF 4.2 - Parsear CV con IA si se subió archivo
-        let profile = { email, registeredAt: new Date().toISOString() };
+        let profile = {
+            email,
+            registeredAt: new Date().toISOString(),
+            skills: [],
+            experiencia: [],
+            historialLaboral: []
+        };
 
         if (req.file) {
-            const cvText = await CVParser.extractText(req.file.buffer, req.file.mimetype);
-            profile = { ...profile, ...(await aiService.parseCV(cvText)), cvProvided: true };
+            try {
+                const cvText = await CVParser.extractText(req.file.buffer, req.file.mimetype);
+                const parsed = await aiService.parseCV(cvText);
+
+                // Normalizar campos del CV parseado
+                profile = {
+                    ...profile,
+                    contacto: parsed.contacto || {},
+                    skills: parsed.habilidades || [],
+                    habilidades: parsed.habilidades || [],
+                    experiencia: parsed.historialLaboral || [],
+                    historialLaboral: parsed.historialLaboral || [],
+                    resumen: parsed.resumen || {},
+                    seniority: parsed.seniority || 'Mid',
+                    cvProvided: true
+                };
+            } catch (cvErr) {
+                console.error('Error parseando CV:', cvErr.message);
+                // No fallar el registro, solo continuar sin CV parseado
+                profile.cvProvided = false;
+                profile.cvError = 'CV no pudo ser procesado';
+            }
         }
 
         // Crear usuario
@@ -312,15 +358,31 @@ app.get('/api/jobs/matched/:userId', async (req, res) => {
 
         if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
+        // Normalizar perfil: parseCV retorna historialLaboral, calculateCompatibility espera experiencia
+        const normalizedProfile = {
+            ...user.profile,
+            experiencia: user.profile.experiencia || user.profile.historialLaboral || [],
+            habilidades: user.profile.habilidades || []
+        };
+
+        // Si el perfil está muy incompleto, retornar error claro
+        if (!normalizedProfile.habilidades.length && !normalizedProfile.experiencia.length) {
+            return res.status(400).json({
+                error: 'Perfil incompleto',
+                message: 'Sube tu CV para ver ofertas compatibles'
+            });
+        }
+
         const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 
         // Calcular compatibilidad para cada job
         const jobsWithMatch = await Promise.all(
             data.jobs.map(async job => {
                 try {
-                    const match = await aiService.calculateCompatibility(user.profile, job);
+                    const match = await aiService.calculateCompatibility(normalizedProfile, job);
                     return { ...job, compatibility: match };
-                } catch {
+                } catch (err) {
+                    console.error(`Error calculando compatibilidad para job ${job.id}: ${err.message}`);
                     return { ...job, compatibility: null };
                 }
             })
@@ -330,7 +392,9 @@ app.get('/api/jobs/matched/:userId', async (req, res) => {
         jobsWithMatch.sort((a, b) => {
             if (!a.compatibility) return 1;
             if (!b.compatibility) return -1;
-            return b.compatibility.score - a.compatibility.score;
+            const scoreA = a.compatibility.porcentaje || a.compatibility.score || 0;
+            const scoreB = b.compatibility.porcentaje || b.compatibility.score || 0;
+            return scoreB - scoreA;
         });
 
         res.json({ jobs: jobsWithMatch });
@@ -347,17 +411,30 @@ app.get('/api/jobs/matched/:userId', async (req, res) => {
 app.post('/api/scrape', async (req, res) => {
     try {
         const { source } = req.body; // 'linkedin', 'tecoloco', 'computrabajo', 'buscojobs', o 'all'
-        const scrapeAll = require('./scrapers/index');
+        const { scrapeAll, scrapeOne } = require('./scrapers/index');
 
-        const results = source && source !== 'all'
-            ? await scrapeAll.scrapeOne(source)
-            : await scrapeAll.scrapeAll();
+        // scrapeAll retorna array de {success, name, count} o {success, name, error}
+        // scrapeOne retorna array de jobs directamente
+        const scrapeResults = source && source !== 'all'
+            ? await scrapeOne(source)
+            : await scrapeAll();
+
+        // Si es array de jobs (scrapeOne) usar directo, si es summary (scrapeAll) extraer jobs
+        let jobs = [];
+        if (scrapeResults.length > 0 && scrapeResults[0] && scrapeResults[0].url) {
+            // Es array de jobs (de scrapeOne)
+            jobs = scrapeResults;
+        } else if (scrapeResults.length > 0 && scrapeResults[0] && (scrapeResults[0].count !== undefined || scrapeResults[0].error)) {
+            // Es array de summaries (de scrapeAll) - no hay jobs directos, solo resumen
+            // El scraping real se hace vía scrapeSome o individual
+            jobs = [];
+        }
 
         // Guardar jobs nuevos en la DB
         const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
         let added = 0;
 
-        for (const job of results) {
+        for (const job of jobs) {
             const existing = data.jobs.find(j => j.url === job.url);
             if (!existing) {
                 job.id = Math.max(...data.jobs.map(j => j.id), 0) + 1;
@@ -370,7 +447,7 @@ app.post('/api/scrape', async (req, res) => {
         data.lastUpdated = new Date().toISOString().split('T')[0];
         fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 
-        res.json({ success: true, total: results.length, added, source: source || 'all' });
+        res.json({ success: true, total: jobs.length, added, source: source || 'all' });
     } catch (err) {
         res.status(500).json({ error: 'Error en scraping: ' + err.message });
     }

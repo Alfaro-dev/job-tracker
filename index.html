@@ -3,319 +3,992 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Tracker — Carlos Alfaro</title>
+    <title>JobCentral — Tu próximo empleo en un solo lugar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
-        .card:hover { transform: translateY(-2px); }
-        .custom-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
-        }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-        .badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .badge-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-        .badge-purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
-        .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .badge-gray { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
-        .badge-red { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .card { transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+        .badge-remoto { background: rgba(16,185,129,0.15); color: #34d399; }
+        .badge-hibrido { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .badge-presencial { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .badge-junior { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .badge-mid { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .badge-senior { background: rgba(239,68,68,0.15); color: #f87171; }
+        .drop-zone { border: 2px dashed #4b5563; transition: all 0.3s; }
+        .drop-zone.dragover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .lock-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border-radius: 0.75rem; cursor: pointer; }
+        .lock-overlay:hover { background: rgba(0,0,0,0.7); }
+        .modal { backdrop-filter: blur(8px); }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-ring circle { transition: stroke-dashoffset 0.5s ease; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen">
-    <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-xl font-bold text-white">📋 Job Tracker</h1>
-                    <p class="text-sm text-gray-400">Carlos Moisés Ortiz Alfaro</p>
-                </div>
-                <div class="flex gap-3">
-                    <button onclick="showSection('ideal')" id="btn-ideal" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white">
-                        ⭐ Ideales <span id="count-ideal" class="ml-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-xs">0</span>
-                    </button>
-                    <button onclick="showSection('backup')" id="btn-backup" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-gray-700 text-gray-300 hover:bg-gray-600">
-                        📦 Backup <span id="count-backup" class="ml-1 bg-gray-600 text-white px-2 py-0.5 rounded-full text-xs">0</span>
-                    </button>
-                </div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LANDING PAGE - Paso 1 del PRD -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section id="landing" class="min-h-screen flex flex-col">
+    <!-- Header simple -->
+    <header class="border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-white">📋 JobCentral</h1>
+                <p class="text-xs text-gray-400">Centralizador de ofertas de empleo</p>
             </div>
-            <div class="mt-4 flex flex-wrap gap-3">
-                <input type="text" id="search" placeholder="Buscar por título, empresa o stack..." 
-                    class="flex-1 min-w-[200px] px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500">
-                <select id="filter-stack" class="custom-select px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
-                    <option value="">Todos los stacks</option>
-                    <option value="Flutter">Flutter</option>
-                    <option value="Laravel">Laravel</option>
-                    <option value="Fullstack">Fullstack</option>
-                </select>
-                <select id="filter-modality" class="custom-select px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
-                    <option value="">Todas las modalidades</option>
-                    <option value="Remoto">Remoto</option>
-                    <option value="Presencial">Presencial SV</option>
-                    <option value="Híbrido">Híbrido</option>
-                </select>
-                <select id="sort-by" class="custom-select px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
-                    <option value="salary-desc">💰 Mayor salario</option>
-                    <option value="salary-asc">💰 Menor salario</option>
-                    <option value="date-desc">📅 Más reciente</option>
-                    <option value="name">🔤 Nombre A-Z</option>
-                </select>
+            <div id="user-nav" class="hidden items-center gap-3">
+                <span id="user-email" class="text-sm text-gray-400"></span>
+                <button onclick="logout()" class="text-sm text-gray-500 hover:text-white">Cerrar sesión</button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <p class="text-2xl font-bold text-emerald-400" id="stat-total">0</p>
-                <p class="text-xs text-gray-400">Total ofertas</p>
+    <!-- Hero con búsqueda -->
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-20">
+        <div class="text-center mb-12 fade-in">
+            <h2 class="text-5xl font-extrabold text-white mb-4">
+                Tu próximo empleo<br><span class="text-blue-500">en un solo lugar</span>
+            </h2>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                Centralizamos vacantes de LinkedIn, Tecoloco, Computrabajo y Buscojobs.
+                IA que resume, clasifica y optimiza tu perfil.
+            </p>
+        </div>
+
+        <!-- Barra de búsqueda - RF 3.1 -->
+        <div class="w-full max-w-3xl fade-in">
+            <div class="relative">
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Busca tu próximo empleo: Desarrollador Flutter, UX Designer..."
+                    class="w-full px-6 py-5 pr-14 bg-gray-900 border border-gray-700 rounded-2xl text-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    onkeydown="if(event.key==='Enter') searchJobs()"
+                >
+                <button onclick="searchJobs()" class="absolute right-4 top-1/2 -translate-y-1/2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-colors">
+                    Buscar
+                </button>
             </div>
-            <div class="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <p class="text-2xl font-bold text-emerald-400" id="stat-ideal">0</p>
-                <p class="text-xs text-gray-400">⭐ Ideales</p>
-            </div>
-            <div class="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <p class="text-2xl font-bold text-amber-400" id="stat-backup">0</p>
-                <p class="text-xs text-gray-400">📦 Backup</p>
-            </div>
-            <div class="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <p class="text-2xl font-bold text-blue-400" id="stat-avg">$0</p>
-                <p class="text-xs text-gray-400">Promedio ideal</p>
+
+            <!-- Tags de búsqueda rápida -->
+            <div class="flex flex-wrap gap-2 mt-4 justify-center">
+                <button onclick="quickSearch('Desarrollador Flutter')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm rounded-lg transition-colors">Desarrollador Flutter</button>
+                <button onclick="quickSearch('Desarrollador Laravel')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm rounded-lg transition-colors">Desarrollador Laravel</button>
+                <button onclick="quickSearch('Frontend Developer')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm rounded-lg transition-colors">Frontend Developer</button>
+                <button onclick="quickSearch('Full Stack')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm rounded-lg transition-colors">Full Stack</button>
             </div>
         </div>
 
-        <div id="pending-banner" class="hidden bg-amber-900/30 border border-amber-600 rounded-xl p-4 mb-6 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <span class="text-2xl">📝</span>
-                <div>
-                    <p class="font-semibold text-amber-300">CVs pendientes por generar</p>
-                    <p class="text-sm text-amber-200/70" id="pending-text">Hay solicitudes de CV esperando</p>
-                </div>
+        <!-- Stats -->
+        <div class="flex gap-12 mt-16 text-center fade-in">
+            <div>
+                <div class="text-3xl font-bold text-white" id="stat-jobs">0</div>
+                <div class="text-sm text-gray-500">Ofertas centralizadas</div>
             </div>
-            <button onclick="checkPending()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors">
-                Notificar a Asistente
-            </button>
-        </div>
-
-        <div id="job-list" class="space-y-4"></div>
-        <div id="empty-state" class="hidden text-center py-20">
-            <div class="text-6xl mb-4">🔍</div>
-            <h3 class="text-xl font-semibold text-gray-300">No hay ofertas que coincidan</h3>
-            <p class="text-gray-500 mt-2">Intenta cambiar los filtros</p>
+            <div>
+                <div class="text-3xl font-bold text-white">4</div>
+                <div class="text-sm text-gray-500">Fuentes rastreadas</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-white">IA</div>
+                <div class="text-sm text-gray-500">Resúmenes inteligentes</div>
+            </div>
         </div>
     </main>
 
-    <footer class="border-t border-gray-800 mt-12 py-6 text-center text-gray-500 text-sm">
-        <p>Job Tracker — <span id="last-update"></span></p>
-        <p class="mt-1">💾 Datos en tu navegador</p>
-    </footer>
+    <!-- CTA inferior -->
+    <div class="border-t border-gray-800 py-8 text-center">
+        <p class="text-gray-500 mb-4">Sube tu CV y te mostraremos las mejores ofertas para ti</p>
+        <button onclick="showRegisterModal()" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25">
+            Subir CV y comenzar gratis →
+        </button>
+    </div>
+</section>
 
-    <script>
-        let jobs = [];
-        let currentSection = 'ideal';
-        let filters = { search: '', stack: '', modality: '' };
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- RESULTADOS PÚBLICOS - Paso 2 del PRD (RF 3.2) -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section id="results" class="hidden min-h-screen">
+    <!-- Header con búsqueda -->
+    <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+            <button onclick="showLanding()" class="text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </button>
+            <div class="flex-1 relative">
+                <input
+                    type="text"
+                    id="results-search"
+                    placeholder="Buscar..."
+                    class="w-full px-4 py-2.5 pr-10 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    onkeydown="if(event.key==='Enter') searchJobs()"
+                >
+                <svg class="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="showRegisterModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-colors">
+                    Subir CV
+                </button>
+                <span id="results-user" class="hidden text-sm text-gray-400"></span>
+            </div>
+        </div>
+    </header>
 
-        const JOBS_DATA = []; // replaced by fetch from API
+    <!-- Grid de resultados -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div id="results-info" class="mb-6 text-gray-400 text-sm"></div>
+        <div id="jobs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Jobs se cargan aquí dinámicamente -->
+        </div>
+        <div id="no-results" class="hidden text-center py-20">
+            <div class="text-6xl mb-4">🔍</div>
+            <h3 class="text-xl font-semibold text-white mb-2">Sin resultados</h3>
+            <p class="text-gray-400">Intenta con otro término de búsqueda</p>
+        </div>
+        <div id="loading-results" class="text-center py-20">
+            <div class="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-gray-400 mt-4">Buscando ofertas...</p>
+        </div>
+    </main>
+</section>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchJobs();
-            setInterval(fetchJobs, 30000);
-            checkPendingCVs();
-            updateStats();
-            renderJobs();
-            document.getElementById('last-update').textContent = 'Verificado: 13 abril 2026 15:40';
-            document.getElementById('search').addEventListener('input', (e) => {
-                filters.search = e.target.value.toLowerCase();
-                renderJobs();
-            });
-            document.getElementById('filter-stack').addEventListener('change', (e) => {
-                filters.stack = e.target.value;
-                renderJobs();
-            });
-            document.getElementById('filter-modality').addEventListener('change', (e) => {
-                filters.modality = e.target.value;
-                renderJobs();
-            });
-            document.getElementById('sort-by').addEventListener('change', renderJobs);
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PANEL PRIVADO - Paso 4 del PRD (RF 5.2) -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section id="panel" class="hidden min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-72 bg-gray-900 border-r border-gray-800 flex flex-col">
+        <div class="p-4 border-b border-gray-800">
+            <h1 class="text-lg font-bold text-white">📋 JobCentral</h1>
+            <p class="text-xs text-gray-400 mt-1">Panel personalizado</p>
+        </div>
+
+        <div class="p-4 border-b border-gray-800">
+            <p class="text-sm text-gray-400 mb-1">Buscando:</p>
+            <input
+                type="text"
+                id="panel-search"
+                placeholder="Desarrollador Flutter..."
+                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                onkeydown="if(event.key==='Enter') loadMatchedJobs()"
+            >
+        </div>
+
+        <!-- Stats del usuario -->
+        <div class="p-4 border-b border-gray-800">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Tu perfil</h3>
+            <div id="panel-profile" class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Habilidades</span>
+                    <span id="profile-skills-count" class="text-white font-medium">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Experiencia</span>
+                    <span id="profile-exp-count" class="text-white font-medium">0 trabajoss</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="p-4 space-y-2">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Acciones</h3>
+            <button onclick="loadMatchedJobs()" class="w-full px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors text-left flex items-center gap-2">
+                <span>🔄</span> Actualizar matches
+            </button>
+            <button onclick="window.open(`/api/users/${state.user.id}/cv-harvard`, '_blank')" class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm rounded-lg transition-colors text-left flex items-center gap-2 font-semibold">
+                <span>📄</span> Descargar CV Harvard
+            </button>
+        </div>
+
+        <!-- User info -->
+        <div class="mt-auto p-4 border-t border-gray-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                    <span id="user-avatar">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p id="panel-user-email" class="text-sm text-white truncate"></p>
+                    <button onclick="logout()" class="text-xs text-gray-500 hover:text-red-400">Cerrar sesión</button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Área principal -->
+    <main class="flex-1 overflow-auto">
+        <div class="max-w-5xl mx-auto px-6 py-8">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Ofertas para ti</h2>
+                    <p class="text-gray-400 text-sm mt-1">Ordenadas por compatibilidad con tu perfil</p>
+                </div>
+                <div id="panel-stats" class="text-sm text-gray-400"></div>
+            </div>
+
+            <div id="panel-jobs" class="space-y-4">
+                <!-- Jobs con compatibilidad se cargan aquí -->
+            </div>
+            <div id="panel-loading" class="text-center py-20">
+                <div class="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-gray-400 mt-4">Calculando compatibilidad...</p>
+            </div>
+            <div id="panel-empty" class="hidden text-center py-20">
+                <div class="text-6xl mb-4">🎯</div>
+                <h3 class="text-xl font-semibold text-white mb-2">Sin ofertas aún</h3>
+                <p class="text-gray-400">Explora las ofertas públicas y vuelve cuando tengamos más datos</p>
+                <button onclick="showResults()" class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">Ver ofertas públicas</button>
+            </div>
+        </div>
+    </main>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MODAL DE REGISTRO - Pasos 2, 3 del PRD (RF 4.1, RF 3.3) -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="register-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal bg-black/70">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl fade-in">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-white" id="modal-title">Sube tu CV y desata todo el potencial</h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 space-y-5">
+            <p class="text-gray-400 text-sm text-center" id="modal-description">
+                Arrastra tu CV o haz clic para subirlo. Nosotros extraemos todo — experiencia, habilidades, contacto — sin que escribas nada.
+            </p>
+
+            <!-- Drop zone - RF 4.1 -->
+            <div id="drop-zone" class="drop-zone rounded-xl p-8 text-center cursor-pointer" onclick="document.getElementById('cv-input').click()">
+                <input type="file" id="cv-input" accept=".pdf,.docx" class="hidden" onchange="handleFileSelect(this.files[0])">
+                <div id="drop-icon" class="text-4xl mb-3">📎</div>
+                <p id="drop-text" class="text-white font-medium">Arrastra tu CV aquí</p>
+                <p class="text-gray-500 text-sm mt-1">PDF o Word, max 5MB</p>
+                <p id="file-name" class="text-green-400 text-sm mt-2 hidden"></p>
+            </div>
+
+            <!-- Email y password -->
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Correo electrónico</label>
+                    <input
+                        type="email"
+                        id="reg-email"
+                        placeholder="tu@correo.com"
+                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    >
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Contraseña</label>
+                    <input
+                        type="password"
+                        id="reg-password"
+                        placeholder="Mínimo 6 caracteres"
+                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    >
+                </div>
+            </div>
+
+            <!-- Error message -->
+            <div id="modal-error" class="hidden px-4 py-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm"></div>
+
+            <!-- Botón submit -->
+            <button id="modal-submit" onclick="handleRegister()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                Crear cuenta gratis
+            </button>
+
+            <!-- Login link -->
+            <div id="login-section" class="text-center">
+                <p class="text-gray-500 text-sm">
+                    ¿Ya tienes cuenta?
+                    <button onclick="switchToLogin()" class="text-blue-400 hover:text-blue-300 font-medium">Inicia sesión</button>
+                </p>
+            </div>
+            <div id="register-section" class="text-center hidden">
+                <p class="text-gray-500 text-sm">
+                    ¿No tienes cuenta?
+                    <button onclick="switchToRegister()" class="text-blue-400 hover:text-blue-300 font-medium">Regístrate gratis</button>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MODAL DE JOB (detalle) - RF 2.1, RF 1.3 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="job-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal bg-black/70">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto fade-in">
+        <div class="sticky top-0 bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-start justify-between">
+            <div>
+                <h3 id="job-modal-title" class="text-lg font-semibold text-white"></h3>
+                <p id="job-modal-company" class="text-gray-400 text-sm"></p>
+            </div>
+            <button onclick="closeJobModal()" class="text-gray-500 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-6">
+            <!-- Badges de clasificación -->
+            <div id="job-modal-badges" class="flex flex-wrap gap-2"></div>
+
+            <!-- Resumen IA - RF 2.1 -->
+            <div>
+                <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">📝 Resumen ejecutivo</h4>
+                <div id="job-summary" class="text-gray-300 text-sm space-y-2">
+                    <p class="text-gray-500 italic">Cargando resumen...</p>
+                </div>
+            </div>
+
+            <!-- Contactos - RF 1.3 -->
+            <div>
+                <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">📧 Contacto de reclutador</h4>
+                <div id="job-contacts" class="space-y-2"></div>
+            </div>
+
+            <!-- Enlace de aplicación -->
+            <div class="pt-4 border-t border-gray-800">
+                <a id="job-apply-link" href="#" target="_blank" class="block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl text-center transition-all">
+                    Ver oferta en la fuente →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TOAST NOTIFICATIONS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-2"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script>
+const API = '';
+const USER_KEY = 'jc_user';
+
+const state = {
+    view: 'landing', // landing | results | panel
+    user: null,
+    searchQuery: '',
+    jobs: [],
+    filteredJobs: [],
+    loading: false,
+    selectedJob: null
+};
+
+// ─── INICIALIZACIÓN ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserFromStorage();
+    loadJobs();
+    setupDragDrop();
+});
+
+function loadUserFromStorage() {
+    try {
+        const stored = localStorage.getItem(USER_KEY);
+        if (stored) {
+            state.user = JSON.parse(stored);
+            updateUserUI();
+        }
+    } catch (e) { /* ignore */ }
+}
+
+function saveUserToStorage() {
+    if (state.user) {
+        localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+    } else {
+        localStorage.removeItem(USER_KEY);
+    }
+}
+
+// ─── NAVEGACIÓN ────────────────────────────────────────────────
+function showLanding() {
+    state.view = 'landing';
+    document.getElementById('landing').classList.remove('hidden');
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('panel').classList.add('hidden');
+}
+
+function showResults() {
+    state.view = 'results';
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('results').classList.remove('hidden');
+    document.getElementById('panel').classList.add('hidden');
+}
+
+function showPanel() {
+    state.view = 'panel';
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    loadMatchedJobs();
+}
+
+// ─── BÚSQUEDA ──────────────────────────────────────────────────
+async function searchJobs() {
+    const query = document.getElementById('search-input').value.trim() ||
+                  document.getElementById('results-search').value.trim();
+    if (!query) return;
+
+    state.searchQuery = query;
+    showResults();
+    document.getElementById('results-search').value = query;
+
+    await loadJobs(query);
+}
+
+function quickSearch(term) {
+    document.getElementById('search-input').value = term;
+    searchJobs();
+}
+
+// ─── CARGAR JOBS ───────────────────────────────────────────────
+async function loadJobs(query = '') {
+    showLoading(true);
+
+    try {
+        const res = await fetch('/api/jobs');
+        if (!res.ok) throw new Error('Error cargando jobs');
+
+        const data = await res.json();
+        state.jobs = data.jobs || [];
+
+        // Filtrar por query si se proporciona
+        if (query) {
+            const q = query.toLowerCase();
+            state.filteredJobs = state.jobs.filter(job =>
+                (job.title || '').toLowerCase().includes(q) ||
+                (job.company || '').toLowerCase().includes(q) ||
+                (job.stack || '').toLowerCase().includes(q) ||
+                (job.location || '').toLowerCase().includes(q)
+            );
+        } else {
+            state.filteredJobs = [...state.jobs];
+        }
+
+        // Solo jobs que tienen isIdeal !== false (mostrar IDEAL y null/true, no false)
+        state.filteredJobs = state.filteredJobs.filter(j => j.isIdeal !== false);
+
+        renderResults();
+        updateStatJobs();
+
+        if (state.filteredJobs.length === 0) {
+            document.getElementById('no-results').classList.remove('hidden');
+        } else {
+            document.getElementById('no-results').classList.add('hidden');
+        }
+    } catch (err) {
+        showToast('Error cargando ofertas: ' + err.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function loadMatchedJobs() {
+    if (!state.user) {
+        showRegisterModal();
+        return;
+    }
+
+    const query = document.getElementById('panel-search').value.trim();
+    showPanelLoading(true);
+
+    try {
+        const res = await fetch(`/api/jobs/matched/${state.user.id}${query ? '?q=' + encodeURIComponent(query) : ''}`);
+
+        if (!res.ok) {
+            // Si falla el matching, cargar jobs normales
+            await loadJobs(query);
+            showPanel();
+            return;
+        }
+
+        const data = await res.json();
+        state.filteredJobs = data.jobs || [];
+
+        // Solo jobs que tienen isIdeal !== false
+        state.filteredJobs = state.filteredJobs.filter(j => j.isIdeal !== false);
+
+        renderPanelJobs();
+    } catch (err) {
+        showToast('Error cargando matches: ' + err.message, 'error');
+        await loadJobs();
+        showPanel();
+    } finally {
+        showPanelLoading(false);
+    }
+}
+
+// ─── RENDERIZADO ────────────────────────────────────────────────
+function renderResults() {
+    const grid = document.getElementById('jobs-grid');
+    grid.innerHTML = '';
+
+    const info = document.getElementById('results-info');
+    info.textContent = `${state.filteredJobs.length} ofertas encontradas${state.searchQuery ? ` para "${state.searchQuery}"` : ''}`;
+
+    state.filteredJobs.forEach(job => {
+        grid.appendChild(createJobCard(job, false));
+    });
+}
+
+function renderPanelJobs() {
+    const container = document.getElementById('panel-jobs');
+    container.innerHTML = '';
+
+    const stats = document.getElementById('panel-stats');
+    stats.textContent = `${state.filteredJobs.length} ofertas`;
+
+    // Actualizar stats del perfil
+    if (state.user?.profile) {
+        const skills = state.user.profile.skills || [];
+        const experiencia = state.user.profile.experiencia || state.user.profile.historialLaboral || [];
+        document.getElementById('profile-skills-count').textContent = skills.length;
+        document.getElementById('profile-exp-count').textContent = experiencia.length + ' trabajos';
+    }
+
+    if (state.filteredJobs.length === 0) {
+        document.getElementById('panel-empty').classList.remove('hidden');
+        document.getElementById('panel-jobs').classList.add('hidden');
+        return;
+    }
+
+    document.getElementById('panel-empty').classList.add('hidden');
+    document.getElementById('panel-jobs').classList.remove('hidden');
+
+    state.filteredJobs.forEach(job => {
+        container.appendChild(createJobCard(job, true));
+    });
+}
+
+function createJobCard(job, isPanel) {
+    const ai = job.aiAnalysis || {};
+    const tech = ai.techSpec || {};
+    const seniority = ai.seniority || {};
+
+    // Badges
+    const modalityBadge = getModalityBadge(tech.modality || job.modality);
+    const seniorityBadge = getSeniorityBadge(seniority.level);
+
+    // Skills
+    const skills = tech.skills || job.stack || [];
+    const skillsHtml = Array.isArray(skills) ? skills.slice(0, 5).join(', ') : skills;
+
+    // Compatibilidad
+    const compat = job.compatibility;
+    const compatHtml = isPanel && compat ? `
+        <div class="flex items-center gap-2 mb-3">
+            <div class="progress-ring w-10 h-10">
+                <svg class="w-10 h-10" viewBox="0 0 36 36">
+                    <path class="text-gray-700" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path class="${compat.score >= 80 ? 'text-green-500' : compat.score >= 50 ? 'text-yellow-500' : 'text-red-500'}" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="${compat.score}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                </svg>
+            </div>
+            <span class="text-sm font-semibold ${compat.score >= 80 ? 'text-green-400' : compat.score >= 50 ? 'text-yellow-400' : 'text-red-400'}">${compat.score || 0}% compatible</span>
+        </div>
+    ` : '';
+
+    // Resumen IA
+    const summaryHtml = isPanel && ai.summary ? `
+        <div class="mt-3 p-3 bg-gray-800/50 rounded-lg">
+            <p class="text-xs text-gray-500 mb-1">📝 Resumen IA</p>
+            <p class="text-sm text-gray-300">${ai.summary.substring(0, 150)}${ai.summary.length > 150 ? '...' : ''}</p>
+        </div>
+    ` : '';
+
+    // Contactos
+    const contactsHtml = isPanel && job.contacts ? `
+        <div class="mt-3 flex flex-wrap gap-2">
+            ${(job.contacts.emails || []).slice(0, 2).map(e => `
+                <button onclick="copyToClipboard('${e}')" class="text-xs px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg transition-colors">
+                    📧 ${e}
+                </button>
+            `).join('')}
+        </div>
+    ` : '';
+
+    // Botones de acción - RF 3.3 (bloqueados para anónimos)
+    const actionsHtml = isPanel ? `
+        <div class="mt-4 flex gap-2">
+            <a href="${job.url || '#'}" target="_blank" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl text-center transition-colors">
+                Aplicar →
+            </a>
+            <button onclick="showJobDetail(${job.id})" class="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-xl transition-colors">
+                Ver detalle
+            </button>
+        </div>
+    ` : `
+        <div class="mt-4 flex gap-2">
+            <button onclick="requestRegister(${job.id})" class="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-semibold rounded-xl text-center transition-all">
+                🔒 Ver oferta completa
+            </button>
+        </div>
+    `;
+
+    const card = document.createElement('div');
+    card.className = 'card bg-gray-900 border border-gray-800 rounded-2xl p-5';
+    card.innerHTML = `
+        <div class="flex items-start justify-between mb-3">
+            <div class="flex-1 min-w-0">
+                <h3 class="text-white font-semibold text-lg leading-tight truncate">${job.title || 'Sin título'}</h3>
+                <p class="text-gray-400 text-sm mt-0.5">${job.company || 'Empresa no especificada'}</p>
+            </div>
+            ${job.isIdeal ? '<span class="ml-2 text-yellow-400 text-lg">⭐</span>' : ''}
+        </div>
+
+        <div class="flex items-center gap-2 text-sm text-gray-400 mb-3">
+            <span>📍</span>
+            <span>${job.location || 'No especificada'}</span>
+            ${job.salary ? `<span class="ml-2">💰 ${job.salary}</span>` : ''}
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-3">
+            ${modalityBadge}
+            ${seniorityBadge}
+        </div>
+
+        ${skillsHtml ? `<p class="text-xs text-gray-500 mb-3">${skillsHtml}</p>` : ''}
+
+        ${compatHtml}
+        ${summaryHtml}
+        ${contactsHtml}
+        ${actionsHtml}
+    `;
+
+    return card;
+}
+
+function getModalityBadge(modality) {
+    const map = {
+        'remoto': { class: 'badge-remoto', text: '🏠 Remoto' },
+        'híbrido': { class: 'badge-hibrido', text: '🔄 Híbrido' },
+        'presencial': { class: 'badge-presencial', text: '🏢 Presencial' }
+    };
+    const m = map[modality?.toLowerCase()] || { class: 'badge-presencial', text: '🏢 Presencial' };
+    return `<span class="badge ${m.class}">${m.text}</span>`;
+}
+
+function getSeniorityBadge(level) {
+    const map = {
+        'junior': { class: 'badge-junior', text: '🌱 Junior' },
+        'mid': { class: 'badge-mid', text: '⚡ Mid' },
+        'senior': { class: 'badge-senior', text: '🔥 Senior' }
+    };
+    const l = map[level?.toLowerCase()] || { class: 'badge-mid', text: '⚡ Mid' };
+    return `<span class="badge ${l.class}">${l.text}</span>`;
+}
+
+// ─── MODAL DE REGISTRO / LOGIN ─────────────────────────────────
+function showRegisterModal(lockedJobId = null) {
+    state.lockedJobId = lockedJobId;
+    document.getElementById('register-modal').classList.remove('hidden');
+    document.getElementById('modal-error').classList.add('hidden');
+    switchToRegister();
+}
+
+function closeModal() {
+    document.getElementById('register-modal').classList.add('hidden');
+    state.lockedJobId = null;
+}
+
+function switchToRegister() {
+    document.getElementById('modal-title').textContent = 'Sube tu CV y desata todo el potencial';
+    document.getElementById('modal-description').textContent = 'Arrastra tu CV o haz clic para subirlo. Nosotros extraemos todo — experiencia, habilidades, contacto — sin que escribas nada.';
+    document.getElementById('drop-zone').classList.remove('hidden');
+    document.getElementById('modal-submit').textContent = 'Crear cuenta gratis';
+    document.getElementById('register-section').classList.add('hidden');
+    document.getElementById('login-section').classList.remove('hidden');
+}
+
+function switchToLogin() {
+    document.getElementById('modal-title').textContent = 'Inicia sesión';
+    document.getElementById('modal-description').textContent = 'Ingresa tus credenciales para acceder a tu panel personalizado.';
+    document.getElementById('drop-zone').classList.add('hidden');
+    document.getElementById('modal-submit').textContent = 'Iniciar sesión';
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('register-section').classList.remove('hidden');
+}
+
+function requestRegister(jobId) {
+    showRegisterModal(jobId);
+}
+
+async function handleRegister() {
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const cvFile = document.getElementById('cv-input').files[0];
+    const isLoginMode = document.getElementById('drop-zone').classList.contains('hidden');
+
+    if (!email || !password) {
+        showModalError('Email y contraseña son requeridos');
+        return;
+    }
+
+    if (!isLoginMode && password.length < 6) {
+        showModalError('La contraseña debe tener al menos 6 caracteres');
+        return;
+    }
+
+    const submitBtn = document.getElementById('modal-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = isLoginMode ? 'Iniciando sesión...' : 'Creando cuenta...';
+
+    try {
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('password', password);
+        if (cvFile) formData.append('cv', cvFile);
+
+        const endpoint = isLoginMode ? '/api/users/login' : '/api/users/register';
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            body: formData
         });
 
-        function fetchJobs() {
-            fetch('/api/jobs')
-                .then(r => r.json())
-                .then(data => {
-                    jobs = data.jobs || [];
-                    renderJobs();
-                    updateStats();
-                    checkPendingCVs();
-                    const lastChecked = data.lastChecked ? new Date(data.lastChecked).toLocaleString('es-SV') : new Date().toLocaleString('es-SV');
-                    document.getElementById('last-update').textContent = 'Verificado: ' + lastChecked;
-                })
-                .catch(err => console.error('Error fetching jobs:', err));
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.error || 'Error en la solicitud');
         }
 
-        function showSection(section) {
-            currentSection = section;
-            document.getElementById('btn-ideal').className = section === 'ideal' 
-                ? 'px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white'
-                : 'px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-gray-700 text-gray-300 hover:bg-gray-600';
-            document.getElementById('btn-backup').className = section === 'backup'
-                ? 'px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-amber-600 text-white'
-                : 'px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-gray-700 text-gray-300 hover:bg-gray-600';
-            renderJobs();
+        state.user = data.user;
+        saveUserToStorage();
+        updateUserUI();
+        closeModal();
+
+        showToast(isLoginMode ? 'Bienvenido de nuevo' : '¡Cuenta creada con éxito!', 'success');
+
+        // Si había un job bloqueado, mostrar panel
+        if (state.lockedJobId) {
+            showPanel();
         }
 
-        function updateStats() {
-            const ideal = jobs.filter(j => j.isIdeal);
-            const backup = jobs.filter(j => !j.isIdeal);
-            const idealWithSalary = ideal.filter(j => j.salary);
-            const avg = idealWithSalary.length 
-                ? Math.round(idealWithSalary.reduce((sum, j) => sum + j.salary, 0) / idealWithSalary.length)
-                : 0;
-            document.getElementById('stat-total').textContent = jobs.length;
-            document.getElementById('stat-ideal').textContent = ideal.length;
-            document.getElementById('stat-backup').textContent = backup.length;
-            document.getElementById('stat-avg').textContent = '$' + avg.toLocaleString();
-            document.getElementById('count-ideal').textContent = ideal.length;
-            document.getElementById('count-backup').textContent = backup.length;
-        }
+    } catch (err) {
+        showModalError(err.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isLoginMode ? 'Iniciar sesión' : 'Crear cuenta gratis';
+    }
+}
 
-        function checkPendingCVs() {
-            const pending = jobs.filter(j => j.cvRequested && !j.applied);
-            const banner = document.getElementById('pending-banner');
-            const text = document.getElementById('pending-text');
-            if (pending.length > 0) {
-                banner.classList.remove('hidden');
-                text.textContent = pending.length + ' CV(s) pendiente(s)';
-            } else {
-                banner.classList.add('hidden');
-            }
-        }
+function showModalError(msg) {
+    const el = document.getElementById('modal-error');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+}
 
-        function requestCV(job) {
-            job.cvRequested = true;
-            job.applied = true;
-            saveToLocalStorage();
-            checkPendingCVs();
-            renderJobs();
-            updateStats();
-            const msg = encodeURIComponent(
-                '🤖 Nueva solicitud de CV\n\n' +
-                '📋 Oferta: ' + job.title + '\n' +
-                '🏢 Empresa: ' + job.company + '\n' +
-                '💰 Salario: ' + (job.salary ? '$' + job.salary.toLocaleString() + '/mes' : 'No publicado') + '\n' +
-                '📍 Modalidad: ' + job.modality + '\n' +
-                '🛠️ Stack: ' + job.stack.join(', ') + '\n' +
-                '🔗 Link: ' + job.url + '\n\n' +
-                '📝 Notas: ' + job.notes + '\n\n' +
-                'Por favor genera el CV especializado.'
-            );
-            window.open('https://t.me/share/url?url=' + encodeURIComponent(job.url) + '&text=' + msg, '_blank');
-        }
+// ─── DRAG & DROP ───────────────────────────────────────────────
+function setupDragDrop() {
+    const zone = document.getElementById('drop-zone');
+    if (!zone) return;
 
-        function toggleApplied(job) {
-            job.applied = !job.applied;
-            saveToLocalStorage();
-            renderJobs();
-            updateStats();
-            checkPendingCVs();
-        }
+    zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.classList.add('dragover');
+    });
 
-        function saveToLocalStorage() {
-            localStorage.setItem('jobTrackerState', JSON.stringify(jobs));
-        }
+    zone.addEventListener('dragleave', () => {
+        zone.classList.remove('dragover');
+    });
 
-        function renderJobs() {
-            const list = document.getElementById('job-list');
-            const emptyState = document.getElementById('empty-state');
-            const sortBy = document.getElementById('sort-by').value;
-            let filtered = jobs.filter(j => j.isIdeal === (currentSection === 'ideal'));
-            if (filters.search) {
-                filtered = filtered.filter(j => 
-                    j.title.toLowerCase().includes(filters.search) ||
-                    j.company.toLowerCase().includes(filters.search) ||
-                    j.stack.some(s => s.toLowerCase().includes(filters.search))
-                );
-            }
-            if (filters.stack) {
-                filtered = filtered.filter(j => j.stack.includes(filters.stack));
-            }
-            if (filters.modality) {
-                filtered = filtered.filter(j => j.modality === filters.modality);
-            }
-            filtered.sort((a, b) => {
-                switch(sortBy) {
-                    case 'salary-desc': return (b.salary || 0) - (a.salary || 0);
-                    case 'salary-asc': return (a.salary || 0) - (b.salary || 0);
-                    case 'date-desc': return new Date(b.date) - new Date(a.date);
-                    case 'name': return a.title.localeCompare(b.title);
-                    default: return 0;
-                }
-            });
-            if (filtered.length === 0) {
-                list.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            emptyState.classList.add('hidden');
-            list.innerHTML = filtered.map(job => `
-                <div class="card bg-gray-900 rounded-xl border border-gray-800 p-5 transition-all duration-200 hover:border-emerald-500/50 ${job.applied ? 'opacity-75' : ''}">
-                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <h3 class="text-lg font-semibold text-white">${job.title}</h3>
-                                ${job.applied ? '<span class="badge badge-green">✅ Postulado</span>' : ''}
-                                ${job.cvRequested && !job.applied ? '<span class="badge badge-amber">📝 CV solicitado</span>' : ''}
-                                ${job.interview ? '<span class="badge badge-purple">📅 Entrevista: ' + job.interview.replace('2026-04-14 ', '14 abr ') + '</span>' : ''}
-                            </div>
-                            <p class="text-gray-400 text-sm mt-1">${job.company}</p>
-                            <div class="flex flex-wrap gap-2 mt-3">
-                                ${job.stack.map(s => '<span class="badge badge-blue">' + s + '</span>').join('')}
-                                <span class="badge ${job.modality === 'Remoto' ? 'badge-purple' : job.modality === 'Híbrido' ? 'badge-amber' : 'badge-gray'}">${job.modality}</span>
-                                <span class="badge badge-gray">📍 ${job.location}</span>
-                            </div>
-                            <p class="text-gray-500 text-xs mt-3 italic">${job.notes}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xl font-bold ${job.isIdeal ? 'text-emerald-400' : 'text-amber-400'}">
-                                ${job.salary ? '$' + job.salary.toLocaleString() : '?'}
-                                ${job.salaryMax && job.salaryMax !== job.salary ? '- $' + job.salaryMax.toLocaleString() : ''}
-                                <span class="text-xs text-gray-400">${job.currency}/mes</span>
-                            </p>
-                            <p class="text-xs text-gray-500 mt-1">Hace ${job.daysAgo} días</p>
-                            <div class="flex flex-col gap-2 mt-3">
-                                <a href="${job.url}" target="_blank" 
-                                    class="px-4 py-2 ${job.applied ? 'bg-gray-700 text-gray-300' : 'bg-emerald-600 hover:bg-emerald-500'} text-white text-sm font-medium rounded-lg transition-colors text-center">
-                                    ${job.applied ? 'Ver oferta' : 'Aplicar →'}
-                                </a>
-                                ${!job.cvRequested ? `
-                                <button onclick="requestCV(jobs.find(j => j.id === ${job.id}))" 
-                                    class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors">
-                                    📝 Solicitar CV
-                                </button>
-                                ` : `
-                                <button onclick="toggleApplied(jobs.find(j => j.id === ${job.id}))" 
-                                    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors">
-                                    ${job.applied ? '✓ Ya postulé' : 'Marcar como postulado'}
-                                </button>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) handleFileSelect(file);
+    });
+}
+
+function handleFileSelect(file) {
+    if (!file) return;
+
+    const validTypes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!validTypes.includes(file.type)) {
+        showToast('Solo se aceptan archivos PDF o Word (.docx)', 'error');
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('El archivo debe ser menor a 5MB', 'error');
+        return;
+    }
+
+    document.getElementById('file-name').textContent = '📎 ' + file.name;
+    document.getElementById('file-name').classList.remove('hidden');
+    document.getElementById('drop-text').textContent = 'Archivo seleccionado';
+    document.getElementById('drop-icon').textContent = '✅';
+}
+
+// ─── JOB DETAIL MODAL ──────────────────────────────────────────
+async function showJobDetail(jobId) {
+    const job = state.filteredJobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    state.selectedJob = job;
+
+    document.getElementById('job-modal-title').textContent = job.title || 'Sin título';
+    document.getElementById('job-modal-company').textContent = job.company || '';
+    document.getElementById('job-apply-link').href = job.url || '#';
+
+    // Badges
+    const ai = job.aiAnalysis || {};
+    const tech = ai.techSpec || {};
+    const seniority = ai.seniority || {};
+    const badgesEl = document.getElementById('job-modal-badges');
+    badgesEl.innerHTML = `
+        ${getModalityBadge(tech.modality || job.modality)}
+        ${getSeniorityBadge(seniority.level)}
+        ${job.salary ? `<span class="badge badge-gray">💰 ${job.salary}</span>` : ''}
+    `;
+
+    // Resumen IA
+    const summaryEl = document.getElementById('job-summary');
+    if (ai.summary) {
+        summaryEl.innerHTML = `<p class="whitespace-pre-line">${ai.summary}</p>`;
+    } else {
+        summaryEl.innerHTML = `<p class="text-gray-500 italic">Sin resumen disponible. ${!state.user ? 'Regístrate para ver el resumen completo.' : ''}</p>`;
+    }
+
+    // Contactos
+    const contactsEl = document.getElementById('job-contacts');
+    const contacts = job.contacts || {};
+    const allEmails = [...new Set([...(contacts.emails || []), ...(contacts.cvSendEmails || [])]))];
+
+    if (allEmails.length > 0 && state.user) {
+        contactsEl.innerHTML = allEmails.slice(0, 3).map(e => `
+            <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                <span class="text-gray-300 text-sm">${e}</span>
+                <button onclick="copyToClipboard('${e}')" class="text-blue-400 hover:text-blue-300 text-sm">Copiar</button>
+            </div>
+        `).join('');
+    } else if (!state.user) {
+        contactsEl.innerHTML = `<p class="text-gray-500 italic">Regístrate para ver los contactos de reclutador.</p>`;
+    } else {
+        contactsEl.innerHTML = `<p class="text-gray-500 italic">No se encontraron emails de contacto.</p>`;
+    }
+
+    document.getElementById('job-modal').classList.remove('hidden');
+}
+
+function closeJobModal() {
+    document.getElementById('job-modal').classList.add('hidden');
+    state.selectedJob = null;
+}
+
+// ─── AUTENTICACIÓN ─────────────────────────────────────────────
+function updateUserUI() {
+    const userNav = document.getElementById('user-nav');
+    const resultsUser = document.getElementById('results-user');
+    const panelEmail = document.getElementById('panel-user-email');
+    const userAvatar = document.getElementById('user-avatar');
+
+    if (state.user) {
+        userNav?.classList.remove('hidden');
+        userNav?.classList.add('flex');
+        resultsUser?.classList.remove('hidden');
+        resultsUser?.textContent = state.user.email;
+
+        if (panelEmail) {
+            panelEmail.textContent = state.user.email;
+            userAvatar.textContent = state.user.email[0].toUpperCase();
         }
-    </script>
+    } else {
+        userNav?.classList.add('hidden');
+        userNav?.classList.remove('flex');
+        resultsUser?.classList.add('hidden');
+        resultsUser?.textContent = '';
+        if (panelEmail) panelEmail.textContent = '';
+        if (userAvatar) userAvatar.textContent = '?';
+    }
+}
+
+function logout() {
+    state.user = null;
+    saveUserToStorage();
+    updateUserUI();
+    showLanding();
+    showToast('Sesión cerrada', 'info');
+}
+
+// ─── UTILIDADES ────────────────────────────────────────────────
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copiado al portapapeles', 'success');
+    }).catch(() => {
+        showToast('Error copiando', 'error');
+    });
+}
+
+function showLoading(show) {
+    document.getElementById('loading-results').classList.toggle('hidden', !show);
+    if (show) document.getElementById('jobs-grid').innerHTML = '';
+}
+
+function showPanelLoading(show) {
+    document.getElementById('panel-loading').classList.toggle('hidden', !show);
+    document.getElementById('panel-jobs').classList.toggle('hidden', show);
+    document.getElementById('panel-empty').classList.add('hidden');
+}
+
+function updateStatJobs() {
+    document.getElementById('stat-jobs').textContent = state.jobs.length;
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const colors = {
+        success: 'bg-green-600',
+        error: 'bg-red-600',
+        info: 'bg-blue-600'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `${colors[type]} text-white px-5 py-3 rounded-xl shadow-lg fade-in flex items-center gap-2`;
+    toast.innerHTML = `
+        <span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
+        <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+// ─── ACTUALIZAR USUARIO CON PROFILE DEL BACKEND ────────────────
+async function refreshUserProfile() {
+    if (!state.user) return;
+
+    try {
+        const res = await fetch(`/api/users/${state.user.id}/profile`);
+        if (res.ok) {
+            const data = await res.json();
+            state.user.profile = data.profile;
+            saveUserToStorage();
+        }
+    } catch (e) { /* ignore */ }
+}
+</script>
 </body>
 </html>
