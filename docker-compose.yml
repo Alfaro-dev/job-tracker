@@ -8,6 +8,12 @@ services:
     volumes:
       - ./data:/app/data
       - ./index.html:/app/index.html
+      - ./server.js:/app/server.js
+      - ./ai-service.js:/app/ai-service.js
+      - ./cv-parser.js:/app/cv-parser.js
+      - ./scrapers:/app/scrapers
+      - ./package.json:/app/package.json
+      - ./.env:/app/.env
       - ./PROMPT.md:/app/PROMPT.md
     restart: unless-stopped
     networks:

@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "test@test.com",
+      "password": "123456",
+      "profile": {
+        "email": "test@test.com",
+        "registeredAt": "2026-05-27T05:55:18.619Z",
+        "skills": [],
+        "experiencia": [],
+        "historialLaboral": []
+      },
+      "createdAt": "2026-05-27T05:55:18.619Z"
+    }
+  ]
+}

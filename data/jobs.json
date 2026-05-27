@@ -1,6 +1,6 @@
 {
   "lastUpdated": "2026-05-27",
-  "lastChecked": "2026-05-27T04:13:59.988Z",
+  "lastChecked": "2026-05-27T05:56:54.910Z",
   "jobs": [
     {
       "id": 11,
@@ -18,8 +18,8 @@
       ],
       "date": "2026-04-11",
       "daysAgo": 2,
-      "notes": "REVISADO BATCH 2: $700/mes WordPress/Frontend. Salary bajo (<$2200). Presencial San Salvador OK. BACKUP por salary bajo.",
-      "isIdeal": false,
+      "notes": null,
+      "isIdeal": null,
       "applied": false,
       "cvRequested": false
     },
@@ -39,8 +39,8 @@
       ],
       "date": "2026-04-07",
       "daysAgo": 6,
-      "notes": "Salary $1,500 < $2,200 mínimo. BACKUP.",
-      "isIdeal": false,
+      "notes": null,
+      "isIdeal": null,
       "applied": true,
       "cvRequested": false,
       "interview": "2026-04-14 08:45"
@@ -60,8 +60,8 @@
       ],
       "date": "2026-05-22",
       "daysAgo": 0,
-      "notes": "REVISADO BATCH 2: Context Engineer .NET+Flutter - Softtek México. REMOTO! Español nativo/fluido. Inglés NO requerido. Stack: .NET+Flutter+Angular. Salary no visible = BACKUP.",
-      "isIdeal": false,
+      "notes": null,
+      "isIdeal": null,
       "applied": false,
       "cvRequested": false
     }
